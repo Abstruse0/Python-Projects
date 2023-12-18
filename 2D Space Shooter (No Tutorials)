@@ -1,26 +1,38 @@
 
+# Log - Start at 4 a.m  - End at 7:40 a.m 12/18/23
+
 # Short Term
-    # Understand the classes, how they move, how they update, how they work alongside eachother.
     # Add enemies to the game
     # Add a health bar that follows the player, and a health bar that follows the enemies
-    # Add sound effects that go off whenever player shoots and Music / Checked
     # Add collisions 
     # Add Damage/Health to Instantiations of player
+
+    # Create a delay in between each shot / Checked - Create a var called Bullet_delay, and last_shot_time = pygame.time.get_ticks() - It will count the ticks, 
+        # then you pass last_shot_time to main and make it global, from there, you only allow bullets to fire if key_down and current_time - last_shot_time > bullet_delay
+        # after that, you put last_shot_time at the end of the lines, and you can set the timer as you like.
+
+    # Understand the classes, how they move, how they update, how they work alongside eachother.
+    # Add sound effects that go off whenever player shoots and Music / Checked - sound = pygame.mixer.Sound("filedest") sound.play(-1) for infinite
+
 # Long Term
     # Find a way to spawn infinite enemies in rounds. 
     # Add Power Ups
-    # 
-
-
-
+    # Create obstacles that can be destroyed and kill player upon Collison, make them moveable to attack player. 
+    # if 3 walls collide, a boss spawns in middle of the screen perhaps
 
 import pygame
 
 pygame.init()
 pygame.font.init()
-width = 800
+width = 1600
 height = 1000
 Window = pygame.display.set_mode((width, height))
+
+
+
+bullet_delay = 200  # Delay in milliseconds
+
+last_shot_time = pygame.time.get_ticks()
 
 # Sounds 
 Effect1 = pygame.mixer.Sound('laser-sound-fx_B_major.wav')
@@ -31,16 +43,16 @@ Music.set_volume(.10)
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.Surface((100,100))
-        self.image.fill((255,255,255))
+        self.image = pygame.transform.rotate(pygame.image.load("spaceship.png"), (270))
         self.rect = self.image.get_rect(center=(width/2, height/2))
+        
 
     def update(self):
         self.rect.center = pygame.mouse.get_pos()
 
+
     def create_bullet(self):
         return Bullet(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-        
     
 
 class Bullet(pygame.sprite.Sprite):
@@ -51,7 +63,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(pos_x+60, pos_y))
 
     def update(self):
-        self.rect.x += 2
+        self.rect.x += 11
         if self.rect.x > width:
             self.kill()
 
@@ -62,24 +74,29 @@ def draw():
     
     player_group.update()
     Bullet_Group.update()
+
     pygame.mouse.set_visible(False)
+
     pygame.display.flip()
     pygame.display.update()
 
-
+# Instantiations
 player = Player()
 player_group = pygame.sprite.Group()
 player_group.add(player)
-
 Bullet_Group = pygame.sprite.Group()
 
+
+
+
 def main():
+    global last_shot_time
     run = True
     Music.play(-1)
-
     Time = pygame.time.Clock()
+
     while run:
-        Time.tick(400)
+        Time.tick(240)
 
         draw()
         for event in pygame.event.get():
@@ -87,8 +104,15 @@ def main():
                 run = False
                 pygame.quit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                Bullet_Group.add(player.create_bullet())
-                Effect1.play()
+            current_time = pygame.time.get_ticks()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and current_time - last_shot_time > bullet_delay:
+                    Bullet_Group.add(player.create_bullet())
+                    Effect1.play()
+                    last_shot_time = current_time 
+                    pygame.transform.rotate(player.image,(200))
+                
+
+
 
 main()
