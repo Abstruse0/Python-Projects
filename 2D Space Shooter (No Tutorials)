@@ -1,0 +1,94 @@
+
+# Short Term
+    # Understand the classes, how they move, how they update, how they work alongside eachother.
+    # Add enemies to the game
+    # Add a health bar that follows the player, and a health bar that follows the enemies
+    # Add sound effects that go off whenever player shoots and Music / Checked
+    # Add collisions 
+    # Add Damage/Health to Instantiations of player
+# Long Term
+    # Find a way to spawn infinite enemies in rounds. 
+    # Add Power Ups
+    # 
+
+
+
+
+import pygame
+
+pygame.init()
+pygame.font.init()
+width = 800
+height = 1000
+Window = pygame.display.set_mode((width, height))
+
+# Sounds 
+Effect1 = pygame.mixer.Sound('laser-sound-fx_B_major.wav')
+Effect1.set_volume(0.10)
+Music = pygame.mixer.Sound('streetfight.mp3.mp3')
+Music.set_volume(.10)
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((100,100))
+        self.image.fill((255,255,255))
+        self.rect = self.image.get_rect(center=(width/2, height/2))
+
+    def update(self):
+        self.rect.center = pygame.mouse.get_pos()
+
+    def create_bullet(self):
+        return Bullet(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+        
+    
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__()
+        self.image = pygame.Surface((20,10))
+        self.image.fill((255,0,30))
+        self.rect = self.image.get_rect(center=(pos_x+60, pos_y))
+
+    def update(self):
+        self.rect.x += 2
+        if self.rect.x > width:
+            self.kill()
+
+def draw():
+    Window.fill((30,30,30))
+    player_group.draw(Window)
+    Bullet_Group.draw(Window)
+    
+    player_group.update()
+    Bullet_Group.update()
+    pygame.mouse.set_visible(False)
+    pygame.display.flip()
+    pygame.display.update()
+
+
+player = Player()
+player_group = pygame.sprite.Group()
+player_group.add(player)
+
+Bullet_Group = pygame.sprite.Group()
+
+def main():
+    run = True
+    Music.play(-1)
+
+    Time = pygame.time.Clock()
+    while run:
+        Time.tick(400)
+
+        draw()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                Bullet_Group.add(player.create_bullet())
+                Effect1.play()
+
+main()
