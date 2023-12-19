@@ -1,7 +1,6 @@
 
 # Log - Start at 4 a.m  - End at 7:40 a.m 12/18/23
-# Log - Start at 1 a.m - end 5:14 a.m 12/19/2023
-
+# Log - Start 1 a.m - End 7:40 - 1 hour break
 # Short Term
     # Add enemies to the game
     # Add a health bar that follows the player, and a health bar that follows the enemies
@@ -39,7 +38,7 @@ last_shot_time = pygame.time.get_ticks()
 
 last_rotation_time = 0
 
-Num_Checker = 1
+Num_Checker = 0
 
 right = 1
 left = 2
@@ -48,7 +47,7 @@ down = 4
 
 direction = [right, left, up, down]
 
-bullet_delay = 300  # Delay in milliseconds
+bullet_delay = 200  # Delay in milliseconds
 
 
 # Sounds 
@@ -66,86 +65,132 @@ class Player(pygame.sprite.Sprite):
         
 
     def update(self):
+        # Rotate delay = x amount, last_rotation_time = 0, current_time = pygame.time.get_ticks() current_time - last_rotation_time > rotate_delay: 
+        # This logic makes it so that you can only rotate every so often. This avoid the counter constantly ticking and spinning without any control for the player
+        # This logic can also be applied to bullets to create a delay between inputs.
         global rotate_delay
+        #This determines where the rectangle is. In this case, it is at your center of mouse x and y coordinates
         self.rect.center = pygame.mouse.get_pos()
 
         key = pygame.key.get_pressed()
         global last_rotation_time
-
-        rotate_delay = 300 
+        # Time delay between rotations
+        rotate_delay = 150 
+        # Counts the time between each action
         current_time = pygame.time.get_ticks()
-
+        # If current_time - last_rotation_time > rotate delay means that both conditions must be true to continue. This creates a buffer to stop constant rotation
         if key[pygame.K_w] and current_time - last_rotation_time > rotate_delay:
                 self.rotate()
-            
+                # resets timer so that x milliseconds must pass before next input is allowed
                 last_rotation_time = current_time
 
+    #A method that returns bullet at center of mouse x and y
     def create_bullet(self):
         return Bullet(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-    
+    # A class that allows for rotation, must be sent to update class to work
     def rotate(self):
-
+        #Used to keep number from updating within update class upon key press
         global Num_Checker
         global direction
 
         key = pygame.key.get_pressed()
 
+        # Loops upon reaching 4, reaches 4 upon 4 key presses within the update method. This allows one to assign a direction to a number,
+        # and allows one to move continuously rotate
         if key[pygame.K_w]:
+            Num_Checker+=1
+            # Resets number to 1 upon exceeding 4, and loop restarts
+            if Num_Checker == 5:
+                  Num_Checker = 1
+            # rotates image upon key press, and upon holding key press since this method is sent to the update method.      
             self.image = pygame.transform.rotate(self.image, 90)
+            
+                   
+            # This is here to make sure the direction is in accordance with your numbers
+            print(Num_Checker)
 
+# A class made to creat a bullet object
 class Bullet(pygame.sprite.Sprite):
+    global Num_Checker
+    # pos_x and pos_y are args from the player.create_bullet() method that has been passed into this class
     def __init__(self, pos_x, pos_y):
         super().__init__()
-        self.image = pygame.Surface((20,10))
+        # Creates a surface, in this case a bullet
+        self.image = pygame.Surface((15,12))
+        # fills image with a color
         self.image.fill((255,0,30))
-        self.rect = self.image.get_rect(center=(pos_x+60, pos_y))
+        # Makes bullet spawn atop the player's mouse position
+        self.rect = self.image.get_rect(center=(pos_x, pos_y))
+        # looks at rect position which is derived by Player class method return bullet that is then passed into pos_x and pos_y method as *args
+        # Upon identifying number, the number which determines where they will face, the rectangle will position accordingly
 
+        # A set of comparisons that allow for rect to determine where to be based on character position.
 
+        if Num_Checker == 0:
+            self.rect = self.image.get_rect(center=(pos_x+75, pos_y))
+
+        if Num_Checker == 1:
+            self.rect = self.image.get_rect(center=(pos_x, pos_y-75))
+
+        if Num_Checker == 2:
+            self.rect = self.image.get_rect(center=(pos_x-75, pos_y))
+
+        if Num_Checker == 3:
+            self.rect = self.image.get_rect(center=(pos_x, pos_y+75))
+
+        if Num_Checker == 4:
+            self.rect = self.image.get_rect(center=(pos_x+75, pos_y))
+
+    # Updates the screen to recognize bullet movement per fps
     def update(self):
-        global Num_Checker
-        global direction
-        key = pygame.key.get_pressed()     
-        time = pygame.time.Clock() 
+        self.count = Num_Checker
+        
+        #Initalizer: Exists until player enters a loop by pressing key
+        if Num_Checker == 0:
+            self.rect.x += 14
 
-        if key[pygame.K_w]:
-        # Issue to solve:
-            # I need a way to make Num_Checker equal to 1-4, and read that everytime it swaps numbers. If I can do that, it will work as intended.
+        # moves bullet based on where player is looking; Got stuck here because I put a key press when unneccessary. 
+        if Num_Checker == 1:
+                        self.rect.y -= 14
 
+        if Num_Checker == 2:
+                            self.rect.x -= 14
 
-            if Num_Checker == direction[0]:
-                            self.rect.x += 11
+        if Num_Checker == 3:
+                            self.rect.y += 14
 
-            if Num_Checker == direction[1]:
-                            self.rect.y -= 11
-
-            if Num_Checker == direction[2]:
-                            self.rect.x -= 11
-
-            if Num_Checker == direction[3]:
-                            self.rect.y += 11
+        if Num_Checker == 4:
+                            self.rect.x += 14
 
 
-
-            if self.rect.x > width:
-                self.kill()
+        # destroys bullet whenever it leaves the width or height of the screen
+        if self.rect.x > width or self.rect.y > height or self.rect.y < 0 or self.rect.x < 0:
+            self.kill()
 
 def draw():
+    #draws background
     Window.blit(bg,(0,0))
+    #draws both groups onto window
     player_group.draw(Window)
     Bullet_Group.draw(Window)
-    
+    #Updates both groups
     player_group.update()
     Bullet_Group.update()
-
+    #Makes mouse cursor invisible
     pygame.mouse.set_visible(False)
-
-    pygame.display.flip()
+    # Updates content on screen
+    pygame.display.flip() 
     pygame.display.update()
 
 # Instantiations
 player = Player()
+
+# A class that allows you to draw multiple objects at once
 player_group = pygame.sprite.Group()
+# A way to make the instantiation of player align with the player classes attributes/methods
 player_group.add(player)
+
+# A class that allows you to draw multiple objects at once
 Bullet_Group = pygame.sprite.Group()
 
 
@@ -155,7 +200,9 @@ def main():
     global last_shot_time
     global x
     run = True
+    #Plays music, (-1) makes it run infinitely
     Music.play(-1)
+    # counts frames
     Time = pygame.time.Clock()
     key = pygame.key.get_pressed()
 
@@ -164,35 +211,22 @@ def main():
         Time.tick(240)
 
         draw()
-        count()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
 
             current_time = pygame.time.get_ticks()
-
+            # if a key is pressed, event.key captures that input, in this case, it creates a delay everytime bullet is creayted
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and current_time - last_shot_time > bullet_delay:
+                    # Creates bullet by adding player bullet to bullet group
                     Bullet_Group.add(player.create_bullet())
+                    # plays upon every key press
                     Effect1.play()
                     last_shot_time = current_time 
 
 
 
-
-# idk, I'm tired, maybe apply this logic to and update think or something, or somewhere.
-def count():
-        current_time = pygame.time.get_ticks()
-        global x
-        global last_rotation_time
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w] and current_time - last_rotation_time > rotate_delay:
-            x += 1
-            print(x)
-            last_rotation_time = current_time
-            if x == 4:
-                x = 1
-                print(x)
 
 main()
