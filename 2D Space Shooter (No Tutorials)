@@ -20,6 +20,8 @@
     # Create obstacles that can be destroyed and kill player upon Collison, make them moveable to attack player. 
     # if 3 walls collide, a boss spawns in middle of the screen perhaps
 
+# for player rotation: In the player class, create a method that rotates self.image only if keypressed = true + current time - last_shot_time > Rotate_delay
+
 import pygame
 
 pygame.init()
