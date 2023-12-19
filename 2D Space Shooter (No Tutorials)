@@ -20,21 +20,35 @@
     # Create obstacles that can be destroyed and kill player upon Collison, make them moveable to attack player. 
     # if 3 walls collide, a boss spawns in middle of the screen perhaps
 
-# for player rotation: In the player class, create a method that rotates self.image only if keypressed = true + current time - last_shot_time > Rotate_delay
+# for player rotation: In the player class, create a method that rotates self.image only if keypressed = true + current_time - last_rotation_time > rotate_delay
 
 import pygame
+import math
+import time
 
 pygame.init()
 pygame.font.init()
 width = 1600
-height = 1000
+height = 800
 Window = pygame.display.set_mode((width, height))
 
-
-
-bullet_delay = 200  # Delay in milliseconds
+bg = pygame.image.load("PixelBack.jpg")
 
 last_shot_time = pygame.time.get_ticks()
+
+last_rotation_time = 0
+
+Num_Checker = 1
+
+right = 1
+left = 2
+up = 3
+down = 4
+
+direction = [right, left, up, down]
+
+bullet_delay = 300  # Delay in milliseconds
+
 
 # Sounds 
 Effect1 = pygame.mixer.Sound('laser-sound-fx_B_major.wav')
@@ -44,18 +58,39 @@ Music.set_volume(.10)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
+
         super().__init__()
         self.image = pygame.transform.rotate(pygame.image.load("spaceship.png"), (270))
         self.rect = self.image.get_rect(center=(width/2, height/2))
         
 
     def update(self):
+        global rotate_delay
         self.rect.center = pygame.mouse.get_pos()
 
+        key = pygame.key.get_pressed()
+        global last_rotation_time
+
+        rotate_delay = 300 
+        current_time = pygame.time.get_ticks()
+
+        if key[pygame.K_w] and current_time - last_rotation_time > rotate_delay:
+                self.rotate()
+            
+                last_rotation_time = current_time
 
     def create_bullet(self):
         return Bullet(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
     
+    def rotate(self):
+
+        global Num_Checker
+        global direction
+
+        key = pygame.key.get_pressed()
+
+        if key[pygame.K_w]:
+            self.image = pygame.transform.rotate(self.image, 90)
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -64,13 +99,37 @@ class Bullet(pygame.sprite.Sprite):
         self.image.fill((255,0,30))
         self.rect = self.image.get_rect(center=(pos_x+60, pos_y))
 
+
     def update(self):
-        self.rect.x += 11
-        if self.rect.x > width:
-            self.kill()
+        global Num_Checker
+        global direction
+        key = pygame.key.get_pressed()     
+        time = pygame.time.Clock() 
+
+        if key[pygame.K_w]:
+        # Issue to solve:
+            # I need a way to make Num_Checker equal to 1-4, and read that everytime it swaps numbers. If I can do that, it will work as intended.
+
+
+            if Num_Checker == direction[0]:
+                            self.rect.x += 11
+
+            if Num_Checker == direction[1]:
+                            self.rect.y -= 11
+
+            if Num_Checker == direction[2]:
+                            self.rect.x -= 11
+
+            if Num_Checker == direction[3]:
+                            self.rect.y += 11
+
+
+
+            if self.rect.x > width:
+                self.kill()
 
 def draw():
-    Window.fill((30,30,30))
+    Window.blit(bg,(0,0))
     player_group.draw(Window)
     Bullet_Group.draw(Window)
     
@@ -93,28 +152,46 @@ Bullet_Group = pygame.sprite.Group()
 
 def main():
     global last_shot_time
+    global x
     run = True
     Music.play(-1)
     Time = pygame.time.Clock()
+    key = pygame.key.get_pressed()
 
+    x = 0
     while run:
         Time.tick(240)
 
         draw()
+        count()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
 
             current_time = pygame.time.get_ticks()
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and current_time - last_shot_time > bullet_delay:
                     Bullet_Group.add(player.create_bullet())
                     Effect1.play()
                     last_shot_time = current_time 
-                    pygame.transform.rotate(player.image,(200))
-                
 
 
+
+
+# idk, I'm tired, maybe apply this logic to and update think or something, or somewhere.
+def count():
+        current_time = pygame.time.get_ticks()
+        global x
+        global last_rotation_time
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w] and current_time - last_rotation_time > rotate_delay:
+            x += 1
+            print(x)
+            last_rotation_time = current_time
+            if x == 4:
+                x = 1
+                print(x)
 
 main()
