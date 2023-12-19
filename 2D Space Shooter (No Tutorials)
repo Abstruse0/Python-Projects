@@ -1,6 +1,8 @@
 
 # Log - Start at 4 a.m  - End at 7:40 a.m 12/18/23
-# Log - Start 1 a.m - End 7:40 - 1 hour break
+
+# Log - Start at 1 a.m  - End at 7:40 a.m, 1-hour break, continued for almost 2 more hours 10:11 a.m  12/19/23
+
 # Short Term
     # Add enemies to the game
     # Add a health bar that follows the player, and a health bar that follows the enemies
@@ -40,12 +42,6 @@ last_rotation_time = 0
 
 Num_Checker = 0
 
-right = 1
-left = 2
-up = 3
-down = 4
-
-direction = [right, left, up, down]
 
 bullet_delay = 200  # Delay in milliseconds
 
@@ -58,6 +54,7 @@ Music.set_volume(.10)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
+        
 
         super().__init__()
         self.image = pygame.transform.rotate(pygame.image.load("spaceship.png"), (270))
@@ -86,12 +83,13 @@ class Player(pygame.sprite.Sprite):
 
     #A method that returns bullet at center of mouse x and y
     def create_bullet(self):
+
         return Bullet(pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+
     # A class that allows for rotation, must be sent to update class to work
     def rotate(self):
         #Used to keep number from updating within update class upon key press
         global Num_Checker
-        global direction
 
         key = pygame.key.get_pressed()
 
@@ -144,23 +142,22 @@ class Bullet(pygame.sprite.Sprite):
     # Updates the screen to recognize bullet movement per fps
     def update(self):
         self.count = Num_Checker
-        
         #Initalizer: Exists until player enters a loop by pressing key
         if Num_Checker == 0:
-            self.rect.x += 14
+            self.rect.x += 9
 
         # moves bullet based on where player is looking; Got stuck here because I put a key press when unneccessary. 
         if Num_Checker == 1:
-                        self.rect.y -= 14
+                        self.rect.y -= 9
 
         if Num_Checker == 2:
-                            self.rect.x -= 14
+                            self.rect.x -= 9
 
         if Num_Checker == 3:
-                            self.rect.y += 14
+                            self.rect.y += 9
 
         if Num_Checker == 4:
-                            self.rect.x += 14
+                            self.rect.x += 9
 
 
         # destroys bullet whenever it leaves the width or height of the screen
@@ -199,6 +196,8 @@ Bullet_Group = pygame.sprite.Group()
 def main():
     global last_shot_time
     global x
+    global bullet_count
+    Bullet_List = []
     run = True
     #Plays music, (-1) makes it run infinitely
     Music.play(-1)
@@ -223,9 +222,9 @@ def main():
                     # Creates bullet by adding player bullet to bullet group
                     Bullet_Group.add(player.create_bullet())
                     # plays upon every key press
+
                     Effect1.play()
                     last_shot_time = current_time 
-
 
 
 
