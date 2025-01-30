@@ -26,7 +26,7 @@ class Trucks():
             self.terms = {1:"Carrier: ", 2:"Truck Number: ", 3:"Trailer Number: ", 4:"Truck Exited: "}
             self.exiting = input("Press Q if Trailer is Leaving and E if trailer is entering or P to pop Bloated, or D for additional Data: ").lower() #An I/O system I use to divide I/O for trailers
             
-            self.time = datetime.now()# Gay porn
+            self.time = datetime.now()
             print(self.List)
 
 #Fix Quitting
